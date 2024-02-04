@@ -8,15 +8,11 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 import pytz
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 load_dotenv()
-
-DISCOVER_USER = os.getenv("DISCOVER_USER")
-DISCOVER_PASS = os.getenv("DISCOVER_PASS")
-FIDELITY_USER = os.getenv("FIDELITY_USER")
-FIDELITY_PASS = os.getenv("FIDELITY_PASS")
-C1_USER = os.getenv("C1_USER")
-C1_PASS = os.getenv("C1_PASS")
 
 chrome_options = Options()
 chrome_options.add_argument("start-maximized")
@@ -70,10 +66,10 @@ def run_discover():
     # TODO: make this random
     time.sleep(2)
     user_element = wait.until(ExpCon.element_to_be_clickable((By.ID, "userid")))
-    user_element.send_keys(DISCOVER_USER)
+    user_element.send_keys(os.getenv("DISCOVER_USER"))
     time.sleep(2)
     password_element = wait.until(ExpCon.element_to_be_clickable((By.ID, "password")))
-    password_element.send_keys(DISCOVER_PASS)
+    password_element.send_keys(os.getenv("DISCOVER_PASS"))
     time.sleep(1)
     login_element = wait.until(ExpCon.element_to_be_clickable((By.ID, "log-in-button")))
     login_element.click()
@@ -87,12 +83,12 @@ def run_fidelity(balances, transactions):
     user_element = wait.until(
         ExpCon.element_to_be_clickable((By.ID, "dom-username-input"))
     )
-    user_element.send_keys(FIDELITY_USER)
+    user_element.send_keys(os.getenv("FIDELITY_USER"))
     time.sleep(2)
     password_element = wait.until(
         ExpCon.element_to_be_clickable((By.ID, "dom-pswd-input"))
     )
-    password_element.send_keys(FIDELITY_PASS)
+    password_element.send_keys(os.getenv("FIDELITY_PASS"))
     time.sleep(1)
     login_element = wait.until(
         ExpCon.element_to_be_clickable((By.ID, "dom-login-button"))
@@ -149,12 +145,12 @@ def run_c1(balances, transactions):
     user_element = wait.until(
         ExpCon.element_to_be_clickable((By.ID, "usernameInputField"))
     )
-    user_element.send_keys(C1_USER)
+    user_element.send_keys(os.getenv("C1_USER"))
     time.sleep(2)
     password_element = wait.until(
         ExpCon.element_to_be_clickable((By.ID, "pwInputField"))
     )
-    password_element.send_keys(C1_PASS)
+    password_element.send_keys(os.getenv("C1_PASS"))
     time.sleep(1)
     form_element = wait.until(
         ExpCon.presence_of_element_located((By.NAME, "signInForm"))
@@ -244,6 +240,16 @@ def run_c1(balances, transactions):
         transactions.append([txn_date, txn_desc, txn_amt, "C1"])
 
 
+def send_email(recipient_email, message):
+    msg = MIMEText(message)
+    msg["From"] = os.getenv("SENDER_EMAIL")
+    msg["To"] = recipient_email
+    server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+    server.login(os.getenv("SENDER_EMAIL"), os.getenv("SENDER_PASS"))
+    server.sendmail(os.getenv("SENDER_EMAIL"), recipient_email, msg.as_string())
+    server.quit()
+
+
 def send_daily_spend():
     balances = []
     transactions = []
@@ -260,7 +266,6 @@ def send_daily_spend():
         run_c1(balances, transactions)
     except:
         failed[2] = True
-
     message = ""
     for i in range(3):
         if failed[i]:
@@ -268,11 +273,7 @@ def send_daily_spend():
     txns_today = [
         txn for txn in transactions if txn[0] == datetime.now(est).strftime("%b-%d-%Y")
     ]
-    message += (
-        "Total daily spend: $"
-        + str(sum([float(txn[2][1:]) for txn in txns_today]))
-        + "\n\n"
-    )
+    message += f"Total daily spend for {datetime.now(est).strftime('%A, %b %-d')}: ${str(sum([float(txn[2][1:]) for txn in txns_today]))}\n\n"
     message += "Breakdown:\n"
     for txn in txns_today:
         message += +txn[2] + ": " + txn[1] + "\n"
@@ -280,10 +281,9 @@ def send_daily_spend():
     message += "Balances:\n"
     for balance in balances:
         message += balance[2] + ": " + balance[0] + " available: " + balance[1] + "\n"
-    print(message)
+    send_email(os.getenv("RECIPIENT_EMAIL"), message)
 
 
 send_daily_spend()
 
-time.sleep(30)
 driver.quit()
