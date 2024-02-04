@@ -6,6 +6,8 @@ from selenium.webdriver.chrome.options import Options
 import time
 import os
 from dotenv import load_dotenv
+from datetime import datetime
+import pytz
 
 load_dotenv()
 
@@ -35,6 +37,24 @@ driver.execute_cdp_cmd(
 
 wait = WebDriverWait(driver, 30)
 
+months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+]
+est = pytz.timezone("US/Eastern")
+
+CC = ["Discover", "Fidelity", "C1"]
+
 
 def run_discover():
     driver.get("https://discover.com")
@@ -60,9 +80,10 @@ def run_discover():
 
 
 # TODO: Send data as text, random intervals, random daily text, try catch
-def run_fidelity():
+def run_fidelity(balances, transactions):
     driver.get("https://digital.fidelity.com/prgw/digital/login/full-page")
     time.sleep(2)
+    ######## login ########
     user_element = wait.until(
         ExpCon.element_to_be_clickable((By.ID, "dom-username-input"))
     )
@@ -77,8 +98,9 @@ def run_fidelity():
         ExpCon.element_to_be_clickable((By.ID, "dom-login-button"))
     )
     login_element.click()
-
     time.sleep(2)
+
+    ######## get balance ########
     cc_button_xpath = "//span[text()='Visa Signature Rewards']"
     cc_button_element = wait.until(
         ExpCon.element_to_be_clickable((By.XPATH, cc_button_xpath))
@@ -90,15 +112,15 @@ def run_fidelity():
         ExpCon.presence_of_element_located((By.XPATH, balance_xpath))
     )
     balance = balance_element.text
-    print("Current balance: " + balance)
 
     available_credit_xpath = "//span[@data-cy='availableCreditValue']"
     available_credit_element = wait.until(
         ExpCon.presence_of_element_located((By.XPATH, available_credit_xpath))
     )
     available_credit = available_credit_element.text
-    print("Available credit: " + available_credit)
+    balances.append([balance, available_credit, "Fidelity"])
 
+    ######## get transactions ########
     table_xpath = "//div[@class='table']"
     table_element = wait.until(
         ExpCon.presence_of_element_located((By.XPATH, table_xpath))
@@ -108,22 +130,22 @@ def run_fidelity():
         txn_date_xpath = ".//div[@data-cy='ccPostTxnsDate']"
         txn_date_element = row.find_element(By.XPATH, txn_date_xpath)
         txn_date = txn_date_element.text
-        print("Date: " + txn_date)
 
         txn_desc_xpath = ".//div[@data-cy='ccPostTxnsDescription']"
         txn_desc_element = row.find_element(By.XPATH, txn_desc_xpath)
         txn_desc = txn_desc_element.text
-        print("Description: " + txn_desc)
 
         txn_amt_xpath = ".//div[@data-cy='ccPostTxnsAmount']"
         txn_amt_element = row.find_element(By.XPATH, txn_amt_xpath)
         txn_amt = txn_amt_element.text
-        print("Amount: " + txn_amt)
+        transactions.append([txn_date, txn_desc, txn_amt, "Fidelity"])
 
 
-def run_c1():
+def run_c1(balances, transactions):
     driver.get("https://verified.capitalone.com/auth/signin")
     time.sleep(2)
+
+    ######## login ########
     user_element = wait.until(
         ExpCon.element_to_be_clickable((By.ID, "usernameInputField"))
     )
@@ -139,8 +161,9 @@ def run_c1():
     )
     login_element = form_element.find_element(By.TAG_NAME, "button")
     login_element.click()
-
     time.sleep(2)
+
+    ######## get balance ########
     balance_dollar_xpath = "//div[contains(@class, 'primary-detail__balance__dollar')]"
     balance_dollar_element = wait.until(
         ExpCon.presence_of_element_located((By.XPATH, balance_dollar_xpath))
@@ -164,8 +187,7 @@ def run_c1():
             balance_cent_element = element
             break
     balance_cent = balance_cent_element.text
-
-    print("Current balance: " + balance_dollar + "." + balance_cent)
+    balance = "$" + balance_dollar + "." + balance_cent
 
     available_credit_dollar_xpath = "//div[@class='primary-content__amount__dollar']"
     available_credit_dollar_element = wait.until(
@@ -177,10 +199,11 @@ def run_c1():
         ExpCon.presence_of_element_located((By.XPATH, available_credit_cent_xpath))
     )
     available_credit_cent = available_credit_cent_element.text
-    print("Available credit: " + available_credit_dollar + "." + available_credit_cent)
-
+    available_credit = "$" + available_credit_dollar + "." + available_credit_cent
+    balances.append([balance, available_credit, "C1"])
     time.sleep(2)
 
+    ######## get transactions ########
     view_more_element = wait.until(ExpCon.element_to_be_clickable((By.ID, "viewMore")))
     view_more_element.click()
 
@@ -201,24 +224,66 @@ def run_c1():
         day_element = row.find_element(By.XPATH, day_xpath)
         day = day_element.text
         txn_date = month + "-" + day
-        print("Date: " + txn_date)
+        if months.index(month) + 1 < datetime.now(est).month or (
+            months.index(month) + 1 == datetime.now(est).month
+            and int(day) <= datetime.now(est).day
+        ):
+            txn_date += "-" + str(datetime.now(est).year)
+        else:
+            txn_date += "-" + str(datetime.now(est).year - 1)
 
         txn_desc_xpath = (
             ".//c1-ease-cell[3]/c1-ease-txns-description/div/span[2]/div[1]"
         )
         txn_desc_element = row.find_element(By.XPATH, txn_desc_xpath)
         txn_desc = txn_desc_element.text
-        print("Description: " + txn_desc)
 
         txn_amt_xpath = ".//c1-ease-cell[6]/span[1]"
         txn_amt_element = row.find_element(By.XPATH, txn_amt_xpath)
         txn_amt = txn_amt_element.text
-        print("Amount: " + txn_amt)
+        transactions.append([txn_date, txn_desc, txn_amt, "C1"])
 
 
-# run_fidelity()
-# run_discover()
-run_c1()
+def send_daily_spend():
+    balances = []
+    transactions = []
+    failed = [False, False, False]
+    try:
+        run_discover()
+    except:
+        failed[0] = True
+    try:
+        run_fidelity(balances, transactions)
+    except:
+        failed[1] = True
+    try:
+        run_c1(balances, transactions)
+    except:
+        failed[2] = True
+
+    message = ""
+    for i in range(3):
+        if failed[i]:
+            message += CC[i] + " failed to load\n\n"
+    txns_today = [
+        txn for txn in transactions if txn[0] == datetime.now(est).strftime("%b-%d-%Y")
+    ]
+    message += (
+        "Total daily spend: $"
+        + str(sum([float(txn[2][1:]) for txn in txns_today]))
+        + "\n\n"
+    )
+    message += "Breakdown:\n"
+    for txn in txns_today:
+        message += +txn[2] + ": " + txn[1] + "\n"
+    message += "\n"
+    message += "Balances:\n"
+    for balance in balances:
+        message += balance[2] + ": " + balance[0] + " available: " + balance[1] + "\n"
+    print(message)
+
+
+send_daily_spend()
 
 time.sleep(30)
 driver.quit()
