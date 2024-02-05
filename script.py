@@ -15,6 +15,7 @@ from email.mime.text import MIMEText
 load_dotenv()
 
 chrome_options = Options()
+chrome_options.add_argument("--headless=new")
 chrome_options.add_argument("start-maximized")
 chrome_options.add_argument("--disable-blink-features")
 chrome_options.add_argument("--disable-blink-features=AutomationControlled")
@@ -140,7 +141,6 @@ def run_fidelity(balances, transactions):
 def run_c1(balances, transactions):
     driver.get("https://verified.capitalone.com/auth/signin")
     time.sleep(2)
-
     ######## login ########
     user_element = wait.until(
         ExpCon.element_to_be_clickable((By.ID, "usernameInputField"))
@@ -158,7 +158,6 @@ def run_c1(balances, transactions):
     login_element = form_element.find_element(By.TAG_NAME, "button")
     login_element.click()
     time.sleep(2)
-
     ######## get balance ########
     balance_dollar_xpath = "//div[contains(@class, 'primary-detail__balance__dollar')]"
     balance_dollar_element = wait.until(
@@ -266,7 +265,7 @@ def send_daily_spend():
         run_c1(balances, transactions)
     except:
         failed[2] = True
-    message = ""
+    message = "\n\n"
     for i in range(3):
         if failed[i]:
             message += CC[i] + " failed to load\n\n"
@@ -280,7 +279,9 @@ def send_daily_spend():
     message += "\n"
     message += "Balances:\n"
     for balance in balances:
-        message += balance[2] + ": " + balance[0] + " available: " + balance[1] + "\n"
+        message += (
+            balance[2] + ": " + balance[0] + " spent " + balance[1] + " available\n"
+        )
     send_email(os.getenv("RECIPIENT_EMAIL"), message)
 
 
