@@ -1,3 +1,4 @@
+import random
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -283,6 +284,7 @@ def send_daily_spend():
     send_email(os.getenv("RECIPIENT_EMAIL"), message)
 
 
+time.sleep(random.randint(0, 120))
 send_daily_spend()
 
 driver.quit()
