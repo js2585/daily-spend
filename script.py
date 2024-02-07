@@ -118,24 +118,78 @@ def run_fidelity(balances, transactions):
     balances.append([balance, available_credit, "Fidelity"])
 
     ######## get transactions ########
-    table_xpath = "//div[@class='table']"
+    table_xpath = "/html/body/div[1]/app-root/div/app-dashboard/div/div/div/div[2]/div[2]/div/div/credit-card-tab/section/div/div/pvd3-tab-group/s-root/div/div[2]/s-slot/s-assigned-wrapper/pvd3-tab-panel[1]/s-root/div/div/s-slot/s-assigned-wrapper/transactions-tab/div/div[2]"
     table_element = wait.until(
         ExpCon.presence_of_element_located((By.XPATH, table_xpath))
     )
     table_rows = table_element.find_elements(By.XPATH, "./*")
-    for row in table_rows:
-        txn_date_xpath = ".//div[@data-cy='ccPostTxnsDate']"
-        txn_date_element = row.find_element(By.XPATH, txn_date_xpath)
-        txn_date = txn_date_element.text
+    if len(table_rows) >= 3:
+        # pending and posted transactions
+        first_txn_table_xpath = "/html/body/div[1]/app-root/div/app-dashboard/div/div/div/div[2]/div[2]/div/div/credit-card-tab/section/div/div/pvd3-tab-group/s-root/div/div[2]/s-slot/s-assigned-wrapper/pvd3-tab-panel[1]/s-root/div/div/s-slot/s-assigned-wrapper/transactions-tab/div/div[2]/div[2]/div"
+        first_txn_table_element = None
+        try:
+            first_txn_table_element = wait.until(
+                ExpCon.presence_of_element_located((By.XPATH, first_txn_table_xpath))
+            )
+        except:
+            print("No transactions")
+            return
+        first_txn_table_rows = first_txn_table_element.find_elements(By.XPATH, "./*")
+        for row in first_txn_table_rows:
+            txn_date_xpath = ".//div[@data-cy='ccPendTxnsDate']"
+            txn_date_element = row.find_element(By.XPATH, txn_date_xpath)
+            txn_date = txn_date_element.text
 
-        txn_desc_xpath = ".//div[@data-cy='ccPostTxnsDescription']"
-        txn_desc_element = row.find_element(By.XPATH, txn_desc_xpath)
-        txn_desc = txn_desc_element.text
+            txn_desc_xpath = ".//div[@data-cy='ccPendTxnsDescription']"
+            txn_desc_element = row.find_element(By.XPATH, txn_desc_xpath)
+            txn_desc = txn_desc_element.text
 
-        txn_amt_xpath = ".//div[@data-cy='ccPostTxnsAmount']"
-        txn_amt_element = row.find_element(By.XPATH, txn_amt_xpath)
-        txn_amt = txn_amt_element.text
-        transactions.append([txn_date, txn_desc, txn_amt, "Fidelity"])
+            txn_amt_xpath = ".//div[@data-cy='ccPendTxnsAmount']"
+            txn_amt_element = row.find_element(By.XPATH, txn_amt_xpath)
+            txn_amt = txn_amt_element.text
+            transactions.append([txn_date, txn_desc, txn_amt, "Fidelity"])
+        second_table_xpath = "/html/body/div[1]/app-root/div/app-dashboard/div/div/div/div[2]/div[2]/div/div/credit-card-tab/section/div/div/pvd3-tab-group/s-root/div/div[2]/s-slot/s-assigned-wrapper/pvd3-tab-panel[1]/s-root/div/div/s-slot/s-assigned-wrapper/transactions-tab/div/div[2]/div[3]/div"
+        second_table_element = wait.until(
+            ExpCon.presence_of_element_located((By.XPATH, second_table_xpath))
+        )
+        second_table_rows = second_table_element.find_elements(By.XPATH, "./*")
+        for row in second_table_rows:
+            txn_date_xpath = ".//div[@data-cy='ccPostTxnsDate']"
+            txn_date_element = row.find_element(By.XPATH, txn_date_xpath)
+            txn_date = txn_date_element.text
+
+            txn_desc_xpath = ".//div[@data-cy='ccPostTxnsDescription']"
+            txn_desc_element = row.find_element(By.XPATH, txn_desc_xpath)
+            txn_desc = txn_desc_element.text
+
+            txn_amt_xpath = ".//div[@data-cy='ccPostTxnsAmount']"
+            txn_amt_element = row.find_element(By.XPATH, txn_amt_xpath)
+            txn_amt = txn_amt_element.text
+            transactions.append([txn_date, txn_desc, txn_amt, "Fidelity"])
+    else:
+        first_txn_table_xpath = "/html/body/div[1]/app-root/div/app-dashboard/div/div/div/div[2]/div[2]/div/div/credit-card-tab/section/div/div/pvd3-tab-group/s-root/div/div[2]/s-slot/s-assigned-wrapper/pvd3-tab-panel[1]/s-root/div/div/s-slot/s-assigned-wrapper/transactions-tab/div/div[2]/div[2]/div"
+        first_txn_table_element = None
+        try:
+            first_txn_table_element = wait.until(
+                ExpCon.presence_of_element_located((By.XPATH, first_txn_table_xpath))
+            )
+        except:
+            print("No transactions")
+            return
+        first_txn_table_rows = first_txn_table_element.find_elements(By.XPATH, "./*")
+        for row in first_txn_table_rows:
+            txn_date_xpath = ".//div[@data-cy='ccPostTxnsDate']"
+            txn_date_element = row.find_element(By.XPATH, txn_date_xpath)
+            txn_date = txn_date_element.text
+
+            txn_desc_xpath = ".//div[@data-cy='ccPostTxnsDescription']"
+            txn_desc_element = row.find_element(By.XPATH, txn_desc_xpath)
+            txn_desc = txn_desc_element.text
+
+            txn_amt_xpath = ".//div[@data-cy='ccPostTxnsAmount']"
+            txn_amt_element = row.find_element(By.XPATH, txn_amt_xpath)
+            txn_amt = txn_amt_element.text
+            transactions.append([txn_date, txn_desc, txn_amt, "Fidelity"])
 
 
 def run_c1(balances, transactions):
@@ -201,13 +255,18 @@ def run_c1(balances, transactions):
     ######## get transactions ########
     view_more_element = wait.until(ExpCon.element_to_be_clickable((By.ID, "viewMore")))
     view_more_element.click()
-
-    table_xpath = "/html/body/div[1]/div/div/div/c1-ease-root/c1-ease-card-l2/c1-ease-card-l2-landing/c1-ease-card-transactions-view/div/c1-ease-txns/div/div[4]/div[4]/c1-ease-card-transactions-view-table/c1-ease-table/div[2]"
-    table_element = wait.until(
-        ExpCon.presence_of_element_located((By.XPATH, table_xpath))
-    )
-    table_rows = table_element.find_elements(By.XPATH, "./*")
-    for row in table_rows:
+    # TODO: pending transactions
+    posted_table_xpath = "/html/body/div[1]/div/div/div/c1-ease-root/c1-ease-card-l2/c1-ease-card-l2-landing/c1-ease-card-transactions-view/div/c1-ease-txns/div/div[4]/div[4]/c1-ease-card-transactions-view-table/c1-ease-table/div[2]"
+    posted_table_element = None
+    try:
+        posted_table_element = wait.until(
+            ExpCon.presence_of_element_located((By.XPATH, posted_table_xpath))
+        )
+    except:
+        print("No posted transactions")
+        return
+    posted_table_rows = posted_table_element.find_elements(By.XPATH, "./*")
+    for row in posted_table_rows:
         month_xpath = (
             ".//c1-ease-cell[2]/c1-ease-txns-date-and-status/div/div/div/span[1]"
         )
@@ -252,30 +311,26 @@ def send_email(recipient_email, message):
 def send_daily_spend():
     balances = []
     transactions = []
-    failed = [False, False, False]
+    message = "\n\n"
     try:
         run_discover()
     except:
-        failed[0] = True
+        message += "Discover failed to load\n\n"
     try:
         run_fidelity(balances, transactions)
     except:
-        failed[1] = True
+        message += "Fidelity failed to load\n\n"
     try:
         run_c1(balances, transactions)
     except:
-        failed[2] = True
-    message = "\n\n"
-    for i in range(3):
-        if failed[i]:
-            message += CC[i] + " failed to load\n\n"
+        message += "C1 failed to load\n\n"
     txns_today = [
         txn for txn in transactions if txn[0] == datetime.now(est).strftime("%b-%d-%Y")
     ]
     message += f"Total daily spend for {datetime.now(est).strftime('%A, %b %-d')}: ${str(sum([float(txn[2][1:]) for txn in txns_today]))}\n\n"
     message += "Breakdown:\n"
     for txn in txns_today:
-        message += +txn[2] + ": " + txn[1] + "\n"
+        message += txn[2] + ": " + txn[1] + ": " + txn[3] + "\n"
     message += "\n"
     message += "Balances:\n"
     for balance in balances:
