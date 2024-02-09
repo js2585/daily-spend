@@ -79,7 +79,7 @@ def run_discover():
 # TODO: Posted only works, need to test other combinations (pending and posted)
 def run_fidelity(balances, transactions):
     driver.get("https://digital.fidelity.com/prgw/digital/login/full-page")
-    time.sleep(2)
+    time.sleep(4)
     ######## login ########
     user_element = wait.until(
         ExpCon.element_to_be_clickable((By.ID, "dom-username-input"))
@@ -95,7 +95,7 @@ def run_fidelity(balances, transactions):
         ExpCon.element_to_be_clickable((By.ID, "dom-login-button"))
     )
     login_element.click()
-    time.sleep(2)
+    time.sleep(4)
 
     ######## get balance ########
     cc_button_xpath = "//span[text()='Visa Signature Rewards']"
@@ -103,7 +103,7 @@ def run_fidelity(balances, transactions):
         ExpCon.element_to_be_clickable((By.XPATH, cc_button_xpath))
     )
     cc_button_element.click()
-    time.sleep(2)
+    time.sleep(4)
     balance_xpath = "//div[@data-cy='creditCardBal']"
     balance_element = wait.until(
         ExpCon.presence_of_element_located((By.XPATH, balance_xpath))
@@ -116,7 +116,7 @@ def run_fidelity(balances, transactions):
     )
     available_credit = available_credit_element.text
     balances.append([balance, available_credit, "Fidelity"])
-    time.sleep(2)
+    time.sleep(4)
     ######## get transactions ########
     try:
         no_pending_xpath = "/html/body/div[1]/app-root/div/app-dashboard/div/div/div/div[2]/div[2]/div/div/credit-card-tab/section/div/div/pvd3-tab-group/s-root/div/div[2]/s-slot/s-assigned-wrapper/pvd3-tab-panel[1]/s-root/div/div/s-slot/s-assigned-wrapper/transactions-tab/div/div[2]/p[1]/span"
@@ -194,7 +194,7 @@ def run_fidelity(balances, transactions):
 # TODO: Pending and posted works, need to test rest of combinations (posted only)
 def run_c1(balances, transactions):
     driver.get("https://verified.capitalone.com/auth/signin")
-    time.sleep(2)
+    time.sleep(4)
     ######## login ########
     user_element = wait.until(
         ExpCon.element_to_be_clickable((By.ID, "usernameInputField"))
@@ -211,7 +211,7 @@ def run_c1(balances, transactions):
     )
     login_element = form_element.find_element(By.TAG_NAME, "button")
     login_element.click()
-    time.sleep(2)
+    time.sleep(4)
     ######## get balance ########
     balance_dollar_xpath = "//div[contains(@class, 'primary-detail__balance__dollar')]"
     balance_dollar_element = wait.until(
@@ -257,7 +257,7 @@ def run_c1(balances, transactions):
     view_more_element.click()
     pending_table_xpath = "/html/body/div[1]/div/div/div/c1-ease-root/c1-ease-card-l2/c1-ease-card-l2-landing/c1-ease-card-transactions-view/div/c1-ease-txns/div/div[4]/div[3]/c1-ease-card-transactions-view-table/c1-ease-table/div[2]"
     pending_table_element = None
-    time.sleep(2)
+    time.sleep(4)
     try:
         pending_table_element = wait.until(
             ExpCon.presence_of_element_located((By.XPATH, pending_table_xpath))
@@ -269,7 +269,7 @@ def run_c1(balances, transactions):
                 ExpCon.element_to_be_clickable((By.XPATH, expand_xpath))
             )
             expand_element.click()
-            time.sleep(2)
+            time.sleep(4)
             extra_info_xpath = ".//c1-ease-txn-drawer"
             extra_info_element = WebDriverWait(row, 5).until(
                 ExpCon.presence_of_element_located((By.XPATH, extra_info_xpath))
