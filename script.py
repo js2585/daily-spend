@@ -103,7 +103,7 @@ def run_fidelity(balances, transactions):
         ExpCon.element_to_be_clickable((By.XPATH, cc_button_xpath))
     )
     cc_button_element.click()
-
+    time.sleep(2)
     balance_xpath = "//div[@data-cy='creditCardBal']"
     balance_element = wait.until(
         ExpCon.presence_of_element_located((By.XPATH, balance_xpath))
@@ -116,7 +116,7 @@ def run_fidelity(balances, transactions):
     )
     available_credit = available_credit_element.text
     balances.append([balance, available_credit, "Fidelity"])
-
+    time.sleep(2)
     ######## get transactions ########
     try:
         no_pending_xpath = "/html/body/div[1]/app-root/div/app-dashboard/div/div/div/div[2]/div[2]/div/div/credit-card-tab/section/div/div/pvd3-tab-group/s-root/div/div[2]/s-slot/s-assigned-wrapper/pvd3-tab-panel[1]/s-root/div/div/s-slot/s-assigned-wrapper/transactions-tab/div/div[2]/p[1]/span"
@@ -131,6 +131,7 @@ def run_fidelity(balances, transactions):
             print("No transactions")
             return
         first_txn_table_rows = first_txn_table_element.find_elements(By.XPATH, "./*")
+        time.sleep(2)
         for row in first_txn_table_rows:
             txn_date_xpath = ".//div[@data-cy='ccPostTxnsDate']"
             txn_date_element = row.find_element(By.XPATH, txn_date_xpath)
@@ -144,7 +145,6 @@ def run_fidelity(balances, transactions):
             txn_amt_element = row.find_element(By.XPATH, txn_amt_xpath)
             txn_amt = txn_amt_element.text
             transactions.append([txn_date, txn_desc, txn_amt, "Fidelity"])
-    # TODO: test this except
     except:
         # pending and posted transactions
         first_txn_table_xpath = "/html/body/div[1]/app-root/div/app-dashboard/div/div/div/div[2]/div[2]/div/div/credit-card-tab/section/div/div/pvd3-tab-group/s-root/div/div[2]/s-slot/s-assigned-wrapper/pvd3-tab-panel[1]/s-root/div/div/s-slot/s-assigned-wrapper/transactions-tab/div/div[2]/div[2]/div"
@@ -157,6 +157,7 @@ def run_fidelity(balances, transactions):
             print("No transactions")
             return
         first_txn_table_rows = first_txn_table_element.find_elements(By.XPATH, "./*")
+        time.sleep(2)
         for row in first_txn_table_rows:
             txn_date_xpath = ".//div[@data-cy='ccPendTxnsDate']"
             txn_date_element = row.find_element(By.XPATH, txn_date_xpath)
@@ -256,6 +257,7 @@ def run_c1(balances, transactions):
     view_more_element.click()
     pending_table_xpath = "/html/body/div[1]/div/div/div/c1-ease-root/c1-ease-card-l2/c1-ease-card-l2-landing/c1-ease-card-transactions-view/div/c1-ease-txns/div/div[4]/div[3]/c1-ease-card-transactions-view-table/c1-ease-table/div[2]"
     pending_table_element = None
+    time.sleep(2)
     try:
         pending_table_element = wait.until(
             ExpCon.presence_of_element_located((By.XPATH, pending_table_xpath))
@@ -267,6 +269,7 @@ def run_c1(balances, transactions):
                 ExpCon.element_to_be_clickable((By.XPATH, expand_xpath))
             )
             expand_element.click()
+            time.sleep(2)
             extra_info_xpath = ".//c1-ease-txn-drawer"
             extra_info_element = WebDriverWait(row, 5).until(
                 ExpCon.presence_of_element_located((By.XPATH, extra_info_xpath))
@@ -348,10 +351,10 @@ def send_daily_spend():
     balances = []
     transactions = []
     message = "\n\n"
-    try:
-        run_discover()
-    except:
-        message += "Discover failed to load\n\n"
+    # try:
+    #     run_discover()
+    # except:
+    #     message += "Discover failed to load\n\n"
     try:
         run_fidelity(balances, transactions)
     except:
@@ -363,7 +366,7 @@ def send_daily_spend():
     txns_today = [
         txn for txn in transactions if txn[0] == datetime.now(est).strftime("%b-%d-%Y")
     ]
-    message += f"Total daily spend for {datetime.now(est).strftime('%A, %b %-d')}: ${str(sum([float(txn[2][1:]) for txn in txns_today]))}\n\n"
+    message += f"Total daily spend for {datetime.now(est).strftime('%A, %b %-d')}: ${format(sum([float(txn[2][1:]) for txn in txns_today]), '.2f')}\n\n"
     message += "Breakdown:\n"
     for txn in txns_today:
         message += txn[2] + ": " + txn[1] + ": " + txn[3] + "\n"
