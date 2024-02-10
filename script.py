@@ -274,8 +274,14 @@ def run_c1(balances, transactions):
             extra_info_element = WebDriverWait(row, 5).until(
                 ExpCon.presence_of_element_located((By.XPATH, extra_info_xpath))
             )
-            date_xpath = ".//div/div/div[1]/div/c1-ease-card-transactions-view-table-drawer-details/div/div[3]/div[1]/div[2]/span"
-            date_element = WebDriverWait(extra_info_element, 5).until(
+            drawer_details_xpath = (
+                ".//c1-ease-card-transactions-view-table-drawer-details"
+            )
+            drawer_details_element = WebDriverWait(extra_info_element, 5).until(
+                ExpCon.presence_of_element_located((By.XPATH, drawer_details_xpath))
+            )
+            date_xpath = ".//div[contains(@class, 'c1-ease-card-transactions-view-table-drawer-details__container')]/div[1]/div[2]/span"
+            date_element = WebDriverWait(drawer_details_element, 5).until(
                 ExpCon.presence_of_element_located((By.XPATH, date_xpath))
             )
             txn_date = datetime.strptime(date_element.text, "%a, %b %d, %Y").strftime(
