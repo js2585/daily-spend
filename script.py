@@ -170,7 +170,8 @@ def run_fidelity(balances, transactions):
             txn_amt_xpath = ".//div[@data-cy='ccPendTxnsAmount']"
             txn_amt_element = row.find_element(By.XPATH, txn_amt_xpath)
             txn_amt = txn_amt_element.text
-            transactions.append([txn_date, txn_desc, txn_amt, "Fidelity"])
+            if txn_amt[0] != "-":
+                transactions.append([txn_date, txn_desc, txn_amt, "Fidelity"])
         second_table_xpath = "/html/body/div[1]/app-root/div/app-dashboard/div/div/div/div[2]/div[2]/div/div/credit-card-tab/section/div/div/pvd3-tab-group/s-root/div/div[2]/s-slot/s-assigned-wrapper/pvd3-tab-panel[1]/s-root/div/div/s-slot/s-assigned-wrapper/transactions-tab/div/div[2]/div[3]/div"
         second_table_element = wait.until(
             ExpCon.presence_of_element_located((By.XPATH, second_table_xpath))
@@ -188,7 +189,8 @@ def run_fidelity(balances, transactions):
             txn_amt_xpath = ".//div[@data-cy='ccPostTxnsAmount']"
             txn_amt_element = row.find_element(By.XPATH, txn_amt_xpath)
             txn_amt = txn_amt_element.text
-            transactions.append([txn_date, txn_desc, txn_amt, "Fidelity"])
+            if txn_amt[0] != "-":
+                transactions.append([txn_date, txn_desc, txn_amt, "Fidelity"])
 
 
 # TODO: Pending and posted works, need to test rest of combinations (posted only)
@@ -343,13 +345,14 @@ def run_c1(balances, transactions):
             transactions.append([txn_date, txn_desc, txn_amt, "C1"])
 
 
-def send_email(recipient_email, message):
+def send_email(recipient_emails, message):
     msg = MIMEText(message)
     msg["From"] = os.getenv("SENDER_EMAIL")
-    msg["To"] = recipient_email
+    msg["To"] = recipient_emails
+    msg["Subject"] = "Daily Spend"
     server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
     server.login(os.getenv("SENDER_EMAIL"), os.getenv("SENDER_PASS"))
-    server.sendmail(os.getenv("SENDER_EMAIL"), recipient_email, msg.as_string())
+    server.sendmail(os.getenv("SENDER_EMAIL"), recipient_emails, msg.as_string())
     server.quit()
 
 
@@ -382,10 +385,10 @@ def send_daily_spend():
         message += (
             balance[2] + ": " + balance[0] + " spent " + balance[1] + " available\n"
         )
-    send_email(os.getenv("RECIPIENT_EMAIL"), message)
+    send_email(os.getenv("RECIPIENT_EMAILS"), message)
 
 
-time.sleep(random.randint(0, 120))
+# time.sleep(random.randint(0, 120))
 send_daily_spend()
 
 driver.quit()
